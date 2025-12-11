@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Escala de Plantões — REDEFRIGOR</title>
+<style>
+:root {
+  --azul:#0056A4;
+  --verde:#00A428;
+}
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background:#f8f8f8;
+  color:#00325e;
+}
+header {
+  display:flex;
+  align-items:center;
+  gap:15px;
+  margin-bottom:15px;
+}
+header img {
+  height:55px;
+}
+h1 {
+  margin:0;
+  color:var(--azul);
+}
+.filters {
+  display:flex;
+  flex-wrap:wrap;
+  gap:15px;
+  align-items:center;
+  background:#fff;
+  padding:10px 15px;
+  border-radius:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+  margin-bottom:20px;
+}
+.filters label {
+  font-size:.9rem;
+  font-weight:bold;
+}
+.filters input[type="date"] {
+  padding:6px 8px;
+  border-radius:4px;
+  border:1px solid #ccc;
+}
+.group {
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  border-left:6px solid var(--azul);
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+.group-title {
+  font-size:1.2rem;
+  font-weight:bold;
+  margin-bottom:10px;
+  color:var(--azul);
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+th {
+  background:var(--verde);
+  color:#fff;
+  text-align:center;
+}
+th, td {
+  padding:8px;
+  border-bottom:1px solid #ddd;
+  text-align:center;
+  font-size:.95rem;
+}
+.wa-btn {
+  display:inline-flex;
+  align-items:center;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  text-decoration:none;
+}
+
+.empty-message {
+  margin-top:10px;
+  font-size:.9rem;
+  font-style:italic;
+  color:#777;
+}
+
+.tutorial-auvodesk {
+  align-items: center;
+  text-align: left;
+  text-align: center;
+  background: #ffffff;
+  color: #00325e;
+  background: #6d26c6;
+  margin: 10px 0 20px 0;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px 15px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border-left: 4px solid var(--verde);
+}
+.tutorial-auvodesk img {
+  height: 130px;
+  display: block;
+  margin: 0 auto;
+}
+.tutorial-auvodesk-title {
+  text-align: left;
+  margin-left: 0;
+  color: #00325e;
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  color: #00325e;
+}
+.tutorial-auvodesk-steps {
+  line-height: 1.8;
+  text-align: left;
+  margin-left: 20px;
+  color: #00325e;
+  font-size: 0.85rem;
+  margin: 0;
+  padding-left: 16px;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo-redefrigor.png" alt="Logo REDEFRIGOR">
+  <div>
+    <h1>Escala de Plantões</h1>
+    <div id="dataAtualTexto" style="font-size:.9rem;color:#666;"></div>
+  </div>
+</header>
+
+<div class="tutorial-auvodesk" style="display:flex; flex-direction: row;">
+  <div>
+    <a href="https://redefrigor.auvo.com.br/Login#signin" target="_blank" rel="noopener"><img src="logo-auvodesk.png" alt="Logo Auvodesk"></a>
+  </div>
+  <div>
+    <div class="tutorial-auvodesk-title">Tutorial para abrir chamado no aplicativo Auvodesk</div>
+    <ol class="tutorial-auvodesk-steps">
+      <li>Clique na <strong>logo do Auvo Desk ao lado</strong> e faça <strong>login com seu usuário e senha</strong>.</li>
+      <li>Clique em <strong>“Nova solicitação”</li>
+      <li>Selecione o equipamento afetado.</li>
+      <li>Descreva o problema de forma objetiva (ex.: “câmara frigorífica com alta temperatura”, “alarme no rack”).</li>
+      <li>Inclua fotos ou vídeos, e clique em <strong>Salvar/Enviar</strong>.</li>
+    </ol>
+  </div>
+</div>
+
+
+<div class="filters">
+  <div>
+    <label for="dateFilter">Data do plantão:</label><br>
+    <input type="date" id="dateFilter">
+  </div>
+  <div>
+    <label>
+      <input type="checkbox" id="showAll">
+      Mostrar todos os dias
+    </label>
+  </div>
+</div>
+
+<div class="group">
+  <div class="group-title">Escala (Cascavel / dia todo)</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Dia da semana</th>
+        <th>Técnico</th>
+        <th>Telefone</th>
+        <th>WhatsApp</th>
+        <th>Cidade</th>
+        <th>Período</th>
+      </tr>
+    </thead>
+    <tbody id="tabelaPlantao"></tbody>
+  </table>
+  <div id="emptyMessage" class="empty-message" style="display:none;">
+    Nenhum plantão cadastrado para essa data.
+  </div>
+</div>
+
+<script>
+const escalaPlantao = [
+    { data: '2025-12-06', tecnico: 'Marcos André', telefone: '+55 45 99973-0262' },
+    { data: '2025-12-07', tecnico: 'Matheus Bernardo', telefone: '+55 45 99980-0115' },
+    { data: '2025-12-13', tecnico: 'Cristian Voltolini', telefone: '+55 45 99815-9554' },
+    { data: '2025-12-14', tecnico: 'Alex Sandro', telefone: '+55 45 99830-0315' },
+    { data: '2025-12-20', tecnico: 'Marlon Voltolini', telefone: '+5545999800261' },
+    { data: '2025-12-21', tecnico: 'Willian Queiroz', telefone: '+55 45 99922-0046' },
+    { data: '2025-12-24', tecnico: 'Fabrício Machado', telefone: '+55 45 99815-9553' },
+    { data: '2025-12-24', tecnico: 'Lourival Iago', telefone: '+55 45 99922-0029' },
+    { data: '2025-12-24', tecnico: 'Gustavo Pilch', telefone: '+55 45 99846-0016' },
+    { data: '2025-12-24', tecnico: 'Tiago Pilch', telefone: '+55 45 99800-0846' },
+    { data: '2025-12-25', tecnico: 'Matheus Bernardo', telefone: '+55 45 99980-0115' },
+    { data: '2025-12-27', tecnico: 'Marcos André', telefone: '+55 45 99973-0262' },
+    { data: '2025-12-28', tecnico: 'Cristian Voltolini', telefone: '+55 45 99815-9554' },
+    { data: '2025-12-31', tecnico: 'Alex Sandro', telefone: '+55 45 99830-0315' },
+    { data: '2025-12-31', tecnico: 'Marlon Voltolini', telefone: '+5545999800261' },
+    { data: '2026-01-01', tecnico: 'Willian Queiroz', telefone: '+55 45 99922-0046' },
+    { data: '2026-01-03', tecnico: 'Gustavo Pilch', telefone: '+55 45 99846-0016' },
+    { data: '2026-01-04', tecnico: 'Tiago Pilch', telefone: '+55 45 99800-0846' }
+];
+
+const CIDADE = "Cascavel";
+const PERIODO = "Dia todo";
+
+function hojeISO() {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+}
+
+function formatarDataBr(iso) {
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function diaSemana(iso) {
+  const dias = [
+    "Domingo",
+    "Segunda-Feira",
+    "Terça-Feira",
+    "Quarta-Feira",
+    "Quinta-Feira",
+    "Sexta-Feira",
+    "Sábado"
+  ];
+  const d = new Date(iso + "T00:00:00");
+  return dias[d.getDay()];
+}
+
+function formatarTelefone(tel) {
+  const digits = tel.replace(/\D/g, '');
+  if (digits.length >= 11) {
+    const ddd = digits.slice(2,4);
+    const num = digits.slice(4);
+    return `(${ddd}) ${num.slice(0,5)}-${num.slice(5)}`;
+  }
+  return tel;
+}
+
+function renderTabela(opcoes) {
+  const { dataSelecionada, mostrarTodos } = opcoes;
+  const tbody = document.getElementById('tabelaPlantao');
+  const emptyMsg = document.getElementById('emptyMessage');
+  tbody.innerHTML = '';
+
+  let lista = escalaPlantao.slice();
+
+  if (!mostrarTodos && dataSelecionada) {
+    lista = lista.filter(item => item.data === dataSelecionada);
+  }
+
+  if (lista.length === 0) {
+    emptyMsg.style.display = 'block';
+    return;
+  } else {
+    emptyMsg.style.display = 'none';
+  }
+
+  lista.sort((a, b) => {
+    if (a.data === b.data) {
+      return (a.tecnico || '').localeCompare(b.tecnico || '');
+    }
+    return a.data.localeCompare(b.data);
+  });
+
+  lista.forEach(p => {
+    const tr = document.createElement('tr');
+
+    const tel = p.telefone || '';
+    const telDigits = tel.replace(/\D/g, '');
+
+    const telHtml = tel
+      ? `<a href="tel:${telDigits}">${formatarTelefone(tel)}</a>`
+      : '';
+
+    const waHtml = tel
+      ? `<a class="wa-btn" href="https://wa.me/${telDigits}" target="_blank" rel="noopener">
+           <img src="whatsapp.png" alt="WhatsApp" style="height:22px; vertical-align:middle;">
+         </a>`
+      : '';
+
+    tr.innerHTML = `
+      <td>${formatarDataBr(p.data)}</td>
+      <td>${diaSemana(p.data)}</td>
+      <td>${p.tecnico}</td>
+      <td>${telHtml}</td>
+      <td>${waHtml}</td>
+      <td>${CIDADE}</td>
+      <td>${PERIODO}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const dateInput = document.getElementById('dateFilter');
+  const showAll = document.getElementById('showAll');
+  const dataAtualTexto = document.getElementById('dataAtualTexto');
+
+  const hoje = new Date();
+  dataAtualTexto.textContent = 'Hoje é ' + hoje.toLocaleDateString('pt-BR');
+
+  dateInput.value = hojeISO();
+
+  function atualizar() {
+    renderTabela({
+      dataSelecionada: dateInput.value,
+      mostrarTodos: showAll.checked
+    });
+  }
+
+  dateInput.addEventListener('change', atualizar);
+  showAll.addEventListener('change', atualizar);
+
+  atualizar();
+});
+</script>
+
+</body>
+</html>
